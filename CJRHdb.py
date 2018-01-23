@@ -39,6 +39,7 @@ def main():
 
     # q. Quit
     elif choice == 'q':
+        db.close()
         quit()
 
     # message to show if input is not in the menu
@@ -90,7 +91,7 @@ def search_record():
     # varible to check the db
     lookingFor = input('Who are you looking for? ')
     #
-    persongRecord = cur.execute('select ' + lookingFor + ' from recordHolder')
+    persongRecord = cur.execute('select personName from recordHolder')
     print(personRecord)
 
     main()
@@ -130,7 +131,7 @@ def restart_record():
 
             db.commit()
 
-            db.close()
+            main()
         else:
             print('Did not delete the db')
             main()
