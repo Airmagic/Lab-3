@@ -38,7 +38,7 @@ def main():
         restart_record()
 
     # q. Quit
-    elif choice == 'q':
+    elif choice == 'q' or "Q":
         db.close()
         quit()
 
@@ -62,45 +62,101 @@ def choice_menu():
     ''')
 
 def see_record():
-    # printing the record for the user
-    for row in cur.execute('select * from recordHolder'):
-        print(row)
+    whichWay = input("Do you want it by Name, Catches, or Country? N or C or Co ")
+    if whichWay == "Name" or "N" or "n":
+        # printing the record for the user
+        for row in cur.execute('select * from recordHolder ORDER BY personsName '):
+            print(row)
+    elif whichWay == "Catches" or "C" or "c":
+        # printing the record for the user
+        for row in cur.execute('select * from recordHolder ORDER BY catches desc'):
+            print(row)
+    elif whichWay == "Country" or "country" or "Co" or "co":
+        # printing the record for the user
+        for row in cur.execute('select * from recordHolder ORDER BY country'):
+            print(row)
+    else:
+        print("please pick one")
+        see_record()
+        # printing the record for the user
+        # for row in cur.execute('select * from recordHolder'):
+        #     print(row)
     # recalling the main program
     main()
 
 def add_record():
-    # getting input from the user
-    personsName = input('Enter name of a chainsaw juggling record holder: ')
-    country = input('Enter the country they are from: ')
-    catches = int(input('Enter number of catches (as a integer): '))
-    anotherPersonAdd = input("Would you like to another person? Y or N ")
-    # sending the information to the datebase command line
-    cur.execute('insert into recordHolder values (?, ?, ?)', (personsName, country, catches))
+    try:
+        # getting input from the user
+        personsName = input('Enter name of a chainsaw juggling record holder: ')
+        personsName = formatNames(personsName)
+        country = input('Enter the country they are from: ')
+        country = formatNames(country)
+        catches = int(input('Enter number of catches (as a integer): '))
+        anotherPersonAdd = input("Would you like to another person? Y or N ")
+        # sending the information to the datebase command line
+        cur.execute('insert into recordHolder values (?, ?, ?)', (personsName, country, catches))
 
-    db.commit() #save changes
+        db.commit() #save changes
 
-    # asking user if they want to add another
-    if anotherPersonAdd == "y" or anotherPersonAdd == "Y":
-        # recalling add program
+        # asking user if they want to add another
+        if anotherPersonAdd == "y" or "Y":
+            # recalling add program
+            add_record()
+        # else statement to recall the main
+        else:
+            main()
+    except ValueError:
+        print("Needs to be a number")
         add_record()
-    # else statement to recall the main
-    else:
-        main()
 
 def search_record():
     # varible to check the db
     lookingFor = input('Who are you looking for? ')
+    lookingFor = formatNames(lookingFor)
+    print(lookingFor)
     #
-    persongRecord = cur.execute('select personName from recordHolder')
-    print(personRecord)
+    personRecord = cur.execute("select * from recordHolder where personsName = ?" , (lookingFor,))
+    print(personRecord.fetchone())
 
     main()
 
 def update_record():
-    pass
+    try:
+
+        whoUpdating = input('Who do you want to update? ')
+        whoUpdating = formatNames(whoUpdating)
+        whatToUpdate = input('What do you want to update Name, Country, or Catches? ')
+        personsName = whoUpdating
+        if whatToUpdate == "Name" or "N" or 'n' or "name":
+            newInputUpdate = input('What do you want to change it to? ')
+            newInputUpdate = formatNames(newInputUpdate)
+        elif whatToUpdate == "Country" or "Co" or "co" or "country":
+            newInputUpdate = input('What do you want to change it to? ')
+            newInputUpdate = formatNames(newInputUpdate)
+        elif whatToUpdate == "Catches" or "Ca" or "ca" or "catches":
+            catches = newInputUpdate = int(input('What do you want to change it to? '))
+        else:
+            print("Needs to be either Name (N) or Country (Co) or Catches (Ca)")
+
+
+        areYouSure = input('Are you sure you want to update '+ whatToUpdate + ' for ' + whoUpdating + ' ? Y or N ')
+
+        if areYouSure == 'Y' or areYouSure == 'y' or areYouSure == 'Yes':
+            cur.execute('UPDATE recordHolder set ' + whatToUpdate + ' = ' + newInputUpdate + ' where personsName = ' + whoUpdating)
+            db.commit()
+            print('The person ' + whoUpdating + ' now has ' + newInputUpdate + ' in ' + whatToUpdate)
+        else:
+            main
+    except ValueError:
+        print("Needs to be a number")
 
 def delete_record():
     pass
+
+def formatNames(name):
+    name = name.lower().title()
+    return name
+
 
 def restart_record():
     try:
@@ -133,7 +189,7 @@ def restart_record():
 
             main()
         else:
-            print('Did not delete the db')
+            print('Did not reset the db')
             main()
 
     except sqlite3.Error as e:
