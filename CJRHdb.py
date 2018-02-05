@@ -38,7 +38,7 @@ def main():
         restart_record()
 
     # q. Quit
-    elif choice == 'q' or "Q":
+    elif choice in ('q', "Q"):
         db.close()
         quit()
 
@@ -63,15 +63,15 @@ def choice_menu():
 
 def see_record():
     whichWay = input("Do you want it by Name, Catches, or Country? N or C or Co ")
-    if whichWay == "Name" or "N" or "n":
+    if whichWay in ("Name", "N", "n"):
         # printing the record for the user
         for row in cur.execute('select * from recordHolder ORDER BY personsName '):
             print(row)
-    elif whichWay == "Catches" or "C" or "c":
+    elif whichWay in ("Catches",  "C", "c"):
         # printing the record for the user
         for row in cur.execute('select * from recordHolder ORDER BY catches desc'):
             print(row)
-    elif whichWay == "Country" or "country" or "Co" or "co":
+    elif whichWay in ("Country", "country", "Co", "co"):
         # printing the record for the user
         for row in cur.execute('select * from recordHolder ORDER BY country'):
             print(row)
@@ -88,23 +88,24 @@ def add_record():
     try:
         # getting input from the user
         personsName = input('Enter name of a chainsaw juggling record holder: ')
-        personsName = formatNames(personsName)
+        personsName = personsName.lower().title()
         country = input('Enter the country they are from: ')
-        country = formatNames(country)
+        country = country.lower().title()
         catches = int(input('Enter number of catches (as a integer): '))
-        anotherPersonAdd = input("Would you like to another person? Y or N ")
         # sending the information to the datebase command line
         cur.execute('insert into recordHolder values (?, ?, ?)', (personsName, country, catches))
 
         db.commit() #save changes
 
+        anotherPersonAdd = input("Would you like to another person? Y or N ")
         # asking user if they want to add another
-        if anotherPersonAdd == "y" or "Y":
+        if anotherPersonAdd in ("y", "Y"):
             # recalling add program
             add_record()
         # else statement to recall the main
         else:
             main()
+
     except ValueError:
         print("Needs to be a number")
         add_record()
@@ -112,7 +113,7 @@ def add_record():
 def search_record():
     # varible to check the db
     lookingFor = input('Who are you looking for? ')
-    lookingFor = formatNames(lookingFor)
+    lookingFor = lookingFor.lower().title()
     print(lookingFor)
     #
     personRecord = cur.execute("select * from recordHolder where personsName = ?" , (lookingFor,))
@@ -124,38 +125,50 @@ def update_record():
     try:
 
         whoUpdating = input('Who do you want to update? ')
-        whoUpdating = formatNames(whoUpdating)
+        whoUpdating = whoUpdating.lower().title()
         whatToUpdate = input('What do you want to update Name, Country, or Catches? ')
-        personsName = whoUpdating
-        if whatToUpdate == "Name" or "N" or 'n' or "name":
+        if whatToUpdate in ("Name", "N", 'n', "name"):
+            whatToUpdate = "personsName"
             newInputUpdate = input('What do you want to change it to? ')
-            newInputUpdate = formatNames(newInputUpdate)
-        elif whatToUpdate == "Country" or "Co" or "co" or "country":
-            newInputUpdate = input('What do you want to change it to? ')
-            newInputUpdate = formatNames(newInputUpdate)
-        elif whatToUpdate == "Catches" or "Ca" or "ca" or "catches":
-            catches = newInputUpdate = int(input('What do you want to change it to? '))
+            newInputUpdate = newInputUpdate.lower().title()
+        elif whatToUpdate in ("Country", "Co", "co", "country"):
+            whatToUpdate = "country"
+            newInputUpdate = input('What country do you want to changed to? ')
+            newInputUpdate = newInputUpdate.lower().title()
+        elif whatToUpdate in ("Catches", "Ca", "ca", "catches"):
+            whatToUpdate = "catches"
+            newInputUpdate = int(input('how many catches do you want to changed to? '))
         else:
             print("Needs to be either Name (N) or Country (Co) or Catches (Ca)")
 
 
         areYouSure = input('Are you sure you want to update '+ whatToUpdate + ' for ' + whoUpdating + ' ? Y or N ')
 
-        if areYouSure == 'Y' or areYouSure == 'y' or areYouSure == 'Yes':
-            cur.execute('UPDATE recordHolder set ' + whatToUpdate + ' = ' + newInputUpdate + ' where personsName = ' + whoUpdating)
+        if areYouSure in ('Y', 'y', 'Yes'):
+            print(whatToUpdate + newInputUpdate + whoUpdating,)
+
+            cur.execute("UPDATE recordHolder set {} = ? where personsName = ?".format(whatToUpdate),(newInputUpdate, whoUpdating,))
             db.commit()
             print('The person ' + whoUpdating + ' now has ' + newInputUpdate + ' in ' + whatToUpdate)
         else:
-            main
+            print("Record is unchanged")
+            main()
+
+        main()
+
     except ValueError:
         print("Needs to be a number")
 
 def delete_record():
-    pass
-
-def formatNames(name):
-    name = name.lower().title()
-    return name
+    whoToDelete = input("Who whould you like to delete? ")
+    areYouSure = input("Are you sure you want to delete " + whoToDelete + " ?")
+    if areYouSure in ("Yes", "yes", "Y", "y"):
+        cur.execute('DELETE FROM recordHolder WHERE personsName = ?', (whoToDelete,))
+        print("Recorded deleted")
+        main()
+    else:
+        print("record not deleted")
+        main()
 
 
 def restart_record():
@@ -163,7 +176,7 @@ def restart_record():
 
         reset_record = input('Would you like to restart the record? Y or N ')
 
-        if reset_record == 'Y' or reset_record == 'y':
+        if reset_record in ('Y', 'y'):
             cur.execute('drop table recordHolder')# deleting table
             db.commit()
 
@@ -184,8 +197,6 @@ def restart_record():
 
             for row in cur.execute('select * from recordHolder'):
                 print(row)
-
-            db.commit()
 
             main()
         else:
