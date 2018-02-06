@@ -62,7 +62,9 @@ def choice_menu():
     ''')
 
 def see_record():
+    # asking to see what one the user wants it ordered in
     whichWay = input("Do you want it by Name, Catches, or Country? N or C or Co ")
+    # if statements to check whichWay to order the db info
     if whichWay in ("Name", "N", "n"):
         # printing the record for the user
         for row in cur.execute('select * from recordHolder ORDER BY personsName '):
@@ -75,19 +77,19 @@ def see_record():
         # printing the record for the user
         for row in cur.execute('select * from recordHolder ORDER BY country'):
             print(row)
+    # else statement if the user doesn't choose one of the options
     else:
         print("please pick one")
         see_record()
-        # printing the record for the user
-        # for row in cur.execute('select * from recordHolder'):
-        #     print(row)
-    # recalling the main program
+    # calling the main method after the printout
     main()
 
 def add_record():
+    # try statement incase of inccorect input for interger
     try:
         # getting input from the user
         personsName = input('Enter name of a chainsaw juggling record holder: ')
+        # formating for the db
         personsName = personsName.lower().title()
         country = input('Enter the country they are from: ')
         country = country.lower().title()
@@ -97,6 +99,7 @@ def add_record():
 
         db.commit() #save changes
 
+        # asking the user if they want to add another
         anotherPersonAdd = input("Would you like to another person? Y or N ")
         # asking user if they want to add another
         if anotherPersonAdd in ("y", "Y"):
@@ -104,29 +107,34 @@ def add_record():
             add_record()
         # else statement to recall the main
         else:
+            # calling main program
             main()
 
+    # errror handling
     except ValueError:
         print("Needs to be a number")
         add_record()
+
 
 def search_record():
     # varible to check the db
     lookingFor = input('Who are you looking for? ')
     lookingFor = lookingFor.lower().title()
-    print(lookingFor)
-    #
+
+    # calling the database for that person
     personRecord = cur.execute("select * from recordHolder where personsName = ?" , (lookingFor,))
     print(personRecord.fetchone())
-
+    # calling the main
     main()
 
 def update_record():
     try:
-
+        # getting input from the user
         whoUpdating = input('Who do you want to update? ')
+        # formating the information from the user
         whoUpdating = whoUpdating.lower().title()
         whatToUpdate = input('What do you want to update Name, Country, or Catches? ')
+        # if statement to direct what changes the user wants to make
         if whatToUpdate in ("Name", "N", 'n', "name"):
             whatToUpdate = "personsName"
             newInputUpdate = input('What do you want to change it to? ')
@@ -138,12 +146,14 @@ def update_record():
         elif whatToUpdate in ("Catches", "Ca", "ca", "catches"):
             whatToUpdate = "catches"
             newInputUpdate = int(input('how many catches do you want to changed to? '))
+        # else statement if they don't choose on of the options
         else:
             print("Needs to be either Name (N) or Country (Co) or Catches (Ca)")
 
-
+        # making sure the user wants to make the update
         areYouSure = input('Are you sure you want to update '+ whatToUpdate + ' for ' + whoUpdating + ' ? Y or N ')
 
+        # if statment to make changes or not
         if areYouSure in ('Y', 'y', 'Yes'):
             print(whatToUpdate + newInputUpdate + whoUpdating,)
 
@@ -156,12 +166,16 @@ def update_record():
 
         main()
 
+    # error handler to check the interger
     except ValueError:
         print("Needs to be a number")
 
 def delete_record():
+    # getting the record that the user wants to delete
     whoToDelete = input("Who whould you like to delete? ")
+    # making sure the user wants to delete the record
     areYouSure = input("Are you sure you want to delete " + whoToDelete + " ?")
+    # if statement for deleting the record or not
     if areYouSure in ("Yes", "yes", "Y", "y"):
         cur.execute('DELETE FROM recordHolder WHERE personsName = ?', (whoToDelete,))
         print("Recorded deleted")
@@ -172,10 +186,12 @@ def delete_record():
 
 
 def restart_record():
+    # this is a hidden option to reset the db back to the beginning
     try:
-
+        making sure they want to reset the database
         reset_record = input('Would you like to restart the record? Y or N ')
 
+        # if statement to reset the db or not
         if reset_record in ('Y', 'y'):
             cur.execute('drop table recordHolder')# deleting table
             db.commit()
@@ -203,15 +219,13 @@ def restart_record():
             print('Did not reset the db')
             main()
 
+    # error handling if there is a problem and roll back the db
     except sqlite3.Error as e:
 
         print('rolling back changes because of error:', e)
         traceback.print_exe() #displays a stack trace, for debugging
         db.rollback()
 
-    # finally:
-    #     print('closing database')
-    #     db.close()
-
+# calling the main program
 if __name__ == '__main__':
     main()
