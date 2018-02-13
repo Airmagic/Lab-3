@@ -57,7 +57,7 @@ class LoginGUI(Frame):
             db = sqlite3.connect(database_filename)
             db.row_factory = sqlite3.Row  # Row factory allows us to refer to columns by name (default is by integer index)
             cursor = db.cursor()
-            txtSQL = '''SELECT name FROM users WHERE username = (?) and password = (?) '''
+            txtSQL = '''SELECT name FROM users WHERE username = ? and password = ?'''
             cursor.Execute(txtSQL,(uname,password))
 
             print('About to execute the following SQL statement: \n' + sql_statement)
